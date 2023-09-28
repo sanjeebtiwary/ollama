@@ -51,8 +51,8 @@ var loaded struct {
 	expireAt    time.Time
 	expireTimer *time.Timer
 
-	digest  string
-	options api.Options
+	runnerDigest string
+	options      api.Options
 }
 
 var defaultSessionDuration = 5 * time.Minute
@@ -74,19 +74,18 @@ func load(ctx context.Context, workDir string, model *Model, reqOpts map[string]
 	if loaded.llm != nil {
 		if err := loaded.llm.Ping(ctx); err != nil {
 			log.Print("loaded llm process not responding, closing now")
-			// the subprocess is no longer running, so close it
 			loaded.llm.Close()
 			loaded.llm = nil
-			loaded.digest = ""
+			loaded.runnerDigest = ""
 		}
 	}
 
-	if model.Digest != loaded.digest || !reflect.DeepEqual(loaded.options, opts) {
+	if model.RunnerDigest != loaded.runnerDigest || !reflect.DeepEqual(loaded.options, opts) {
 		if loaded.llm != nil {
 			log.Println("changing loaded model")
 			loaded.llm.Close()
 			loaded.llm = nil
-			loaded.digest = ""
+			loaded.runnerDigest = ""
 		}
 
 		if model.Embeddings != nil && len(model.Embeddings) > 0 {
@@ -101,7 +100,7 @@ func load(ctx context.Context, workDir string, model *Model, reqOpts map[string]
 
 		// set cache values before modifying opts
 		loaded.llm = llmModel
-		loaded.digest = model.Digest
+		loaded.runnerDigest = model.RunnerDigest
 		loaded.options = opts
 
 		if opts.NumKeep < 0 {
@@ -148,7 +147,7 @@ func load(ctx context.Context, workDir string, model *Model, reqOpts map[string]
 
 			loaded.llm.Close()
 			loaded.llm = nil
-			loaded.digest = ""
+			loaded.runnerDigest = ""
 		})
 	}
 
