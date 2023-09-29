@@ -18,9 +18,7 @@ import (
 
 const DefaultHost = "127.0.0.1:11434"
 
-var (
-	envHost = os.Getenv("OLLAMA_HOST")
-)
+var envHost = os.Getenv("OLLAMA_HOST")
 
 type Client struct {
 	Base    url.URL
@@ -141,7 +139,7 @@ func (c *Client) stream(ctx context.Context, method, path string, data any, fn f
 	}
 
 	request.Header.Set("Content-Type", "application/json")
-	request.Header.Set("Accept", "application/json")
+	request.Header.Set("Accept", "application/x-ndjson")
 	request.Header.Set("User-Agent", fmt.Sprintf("ollama/%s (%s %s) Go/%s", version.Version, runtime.GOARCH, runtime.GOOS, runtime.Version()))
 
 	response, err := http.DefaultClient.Do(request)
