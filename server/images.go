@@ -44,12 +44,12 @@ type Model struct {
 	ShortName    string   `json:"-"`
 	ModelPath    string   `json:"-"`
 	Template     string   `json:"-"`
+	System       string   `json:"-"`
 	License      []string `json:"-"`
 	RunnerDigest string   // RunnerDigest is used to identify when the loaded model should be changed
 	// these fields are used to determine the RunnerDigest
 	OriginalModel string                 `json:"originalModel"`
 	AdapterPaths  []string               `json:"adapterPaths"`
-	System        string                 `json:"system"`
 	Options       map[string]interface{} `json:"options"`
 	Embeddings    []vector.Embedding     `json:"embeddings"`
 }

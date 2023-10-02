@@ -52,6 +52,7 @@ var loaded struct {
 	expireTimer *time.Timer
 
 	runnerDigest string
+	system       string // TODO: this shouldn't be something this is set one time and then never changed
 	options      api.Options
 }
 
@@ -102,32 +103,6 @@ func load(ctx context.Context, workDir string, model *Model, reqOpts map[string]
 		loaded.llm = llmModel
 		loaded.runnerDigest = model.RunnerDigest
 		loaded.options = opts
-
-		if opts.NumKeep < 0 {
-			promptWithSystem, err := model.Prompt(api.GenerateRequest{}, "")
-			if err != nil {
-				return err
-			}
-
-			promptNoSystem, err := model.Prompt(api.GenerateRequest{Context: []int{0}}, "")
-			if err != nil {
-				return err
-			}
-
-			tokensWithSystem, err := llmModel.Encode(ctx, promptWithSystem)
-			if err != nil {
-				return err
-			}
-
-			tokensNoSystem, err := llmModel.Encode(ctx, promptNoSystem)
-			if err != nil {
-				return err
-			}
-
-			opts.NumKeep = len(tokensWithSystem) - len(tokensNoSystem)
-
-			llmModel.SetOptions(opts)
-		}
 	}
 
 	loaded.expireAt = time.Now().Add(sessionDuration)
@@ -149,6 +124,34 @@ func load(ctx context.Context, workDir string, model *Model, reqOpts map[string]
 			loaded.llm = nil
 			loaded.runnerDigest = ""
 		})
+	}
+
+	if loaded.system != model.System && loaded.options.NumKeep < 0 {
+		// keep the system prompt in the context to preserve behavior, it is assmed to be at the beginning of the prompt
+		promptWithSystem, err := model.Prompt(api.GenerateRequest{}, "")
+		if err != nil {
+			return err
+		}
+
+		promptNoSystem, err := model.Prompt(api.GenerateRequest{Context: []int{0}}, "")
+		if err != nil {
+			return err
+		}
+
+		tokensWithSystem, err := loaded.llm.Encode(ctx, promptWithSystem)
+		if err != nil {
+			return err
+		}
+
+		tokensNoSystem, err := loaded.llm.Encode(ctx, promptNoSystem)
+		if err != nil {
+			return err
+		}
+
+		opts.NumKeep = len(tokensWithSystem) - len(tokensNoSystem)
+
+		loaded.system = model.System
+		loaded.llm.SetOptions(opts)
 	}
 
 	loaded.expireTimer.Reset(sessionDuration)
