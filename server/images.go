@@ -40,15 +40,16 @@ type RegistryOptions struct {
 }
 
 type Model struct {
-	Name          string                 `json:"-"`
-	ShortName     string                 `json:"-"`
-	ModelPath     string                 `json:"-"`
+	Name         string   `json:"-"`
+	ShortName    string   `json:"-"`
+	ModelPath    string   `json:"-"`
+	Template     string   `json:"-"`
+	License      []string `json:"-"`
+	RunnerDigest string   // RunnerDigest is used to identify when the loaded model should be changed
+	// these fields are used to determine the RunnerDigest
 	OriginalModel string                 `json:"originalModel"`
 	AdapterPaths  []string               `json:"adapterPaths"`
-	Template      string                 `json:"-"`
 	System        string                 `json:"system"`
-	License       []string               `json:"license"`
-	RunnerDigest  string                 `json:"-"` // RunnerDigest is used to identify when the loaded model should be changed
 	Options       map[string]interface{} `json:"options"`
 	Embeddings    []vector.Embedding     `json:"embeddings"`
 }
